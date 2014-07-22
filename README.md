@@ -1,0 +1,111 @@
+DemandSpike
+===========
+
+Load Testing Framework for Distributed Applications built on Top of Yarn
+
+# Levels of aggregation
+- Global Totals
+- By Machine
+- By Container
+
+# Data points to measure
+
+- Volume (number of events)
+- IO (Size of the data being sent)
+- Latency (Time to send an event)
+- Error (Number of error or failures)
+- 
+ 
+# Install kafka 
+- Download kafka
+```
+wget https://www.apache.org/dyn/closer.cgi?path=/kafka/0.8.1.1/kafka_2.8.0-0.8.1.1.tgz
+tar xvzf kafka_2.8.0-0.8.1.1.tgz
+```
+
+
+
+
+
+- EXPORT the Env Variables
+```
+export HADOOP_PREFIX="/home/username/environment/yarn/hadoop-2.2.0"
+export DEMANDSPIKE_HOME="/home/username/environment/demandspike"
+export KAFKA_HOME="/home/username/environment/kafka_2.8.0-0.8.1"
+export DEMANDSPIKE_SRC="/home/username/environment/workspace/NeverwinterDP/DemandSpike"
+export PATH=/home/username/environment/gradle-1.10/bin:$PATH
+```
+
+
+
+- Start Kafka
+
+```
+$KAFKA_HOME/bin/zookeeper-server-start.sh $KAFKA_HOME/config/zookeeper.properties
+$KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties
+
+$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+$KAFKA_HOME/bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic test --from-beginning
+```
+
+- Clean
+```
+rm -rf $HADOOP_PREFIX/logs/*
+rm -rf $HADOOP_PREFIX/hdfs/*
+rm -rf $DEMANDSPIKE_HOME/lib/DemandSpike-1.0.jar
+rm -rf $DEMANDSPIKE_HOME/lib/lib.zip
+```
+
+
+
+- Build & Copy
+```
+cd $DEMANDSPIKE_SRC
+gradle clean
+gradle allInOne
+cp build/libs/DemandSpike-1.0.jar $DEMANDSPIKE_HOME/lib
+cp build/libs/lib.zip $DEMANDSPIKE_HOME/lib
+```
+
+
+
+- Start
+```
+$HADOOP_PREFIX/bin/hdfs namenode -format
+$HADOOP_PREFIX/sbin/hadoop-daemon.sh start namenode
+$HADOOP_PREFIX/sbin/hadoop-daemon.sh start datanode
+$HADOOP_PREFIX/sbin/yarn-daemon.sh start resourcemanager
+$HADOOP_PREFIX/sbin/yarn-daemon.sh start nodemanager
+```
+
+
+- Copy file
+```
+$HADOOP_PREFIX/bin/hdfs dfs -rm /lib.zip
+$HADOOP_PREFIX/bin/hdfs dfs -copyFromLocal $DEMANDSPIKE_HOME/lib/lib.zip /
+```
+
+- Run
+```
+$HADOOP_PREFIX/bin/hadoop jar $DEMANDSPIKE_HOME/lib/DemandSpike-1.0.jar com.demandcube.demandspike.yarn.Client -am_mem 300 -container_mem 300 --container_cnt 3  --am_producers_config kafka_producer.yml --app_name RandomProducer --am_class_name "com.demandcube.demandspike.yarn.ApplicationMaster" 
+```
+
+
+- stop
+```
+$HADOOP_PREFIX/sbin/hadoop-daemon.sh stop namenode
+$HADOOP_PREFIX/sbin/hadoop-daemon.sh stop datanode
+$HADOOP_PREFIX/sbin/yarn-daemon.sh stop resourcemanager
+$HADOOP_PREFIX/sbin/yarn-daemon.sh stop nodemanager
+```
+
+
+
+ 
+
+
+
+
+ 
+ 
+ 
