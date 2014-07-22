@@ -14,7 +14,7 @@ Load Testing Framework for Distributed Applications built on Top of Yarn
 - IO (Size of the data being sent)
 - Latency (Time to send an event)
 - Error (Number of error or failures)
- 
+- 
  
 # Installation 
 - Download kafka
